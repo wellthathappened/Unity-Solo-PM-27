@@ -22,17 +22,23 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         jumpRay = new Ray();
         playerCam = Camera.main;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    private void FixedUpdate()
+    {
+        Quaternion playerRotation = Quaternion.identity;
+        playerRotation.y = playerCam.transform.rotation.y;
+        playerRotation.w = playerCam.transform.rotation.w;
+        transform.rotation = playerRotation;
     }
 
     // Update is called once per frame
     void Update()
     {
-        // Camera Handler
-        Quaternion playerRotation = Quaternion.identity;
-        playerRotation.y = playerCam.transform.rotation.y;
-        playerRotation.w = playerCam.transform.rotation.w;
-        transform.rotation = playerRotation;
-
+        
         jumpRay.origin = transform.position;
         jumpRay.direction = -transform.up;
 
@@ -41,9 +47,9 @@ public class PlayerController : MonoBehaviour
         tempMove.x = moveInput.x * speed;
         tempMove.z = moveInput.y * speed;
 
-        rb.linearVelocity = (tempMove.z * transform.forward) +
+        rb.linearVelocity = (tempMove.x * transform.right) +
                             (tempMove.y * transform.up) +
-                            (tempMove.x * transform.right);
+                            (tempMove.z * transform.forward);
     }
 
     public void Move(InputAction.CallbackContext context)
