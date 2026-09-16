@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,10 +7,17 @@ public class PlayerController : MonoBehaviour
     public float speed = 5.0f;
     public float jumpHeight = 10.0f;
     public float jumpDetectDistance = 1f;
+    public float attackTime = .5f;
+    public float attackCooldownTime = 1f;
+
+    public bool isAttacking = false;
+    public bool canAttack = false;
 
     Ray2D jumpRay;
     Vector2 moveInput = Vector2.zero;
 
+    public GameObject currentWeaponObj;
+    Transform weaponSlot;
     PlayerInput input;
     Rigidbody2D rb;
 
@@ -19,6 +27,7 @@ public class PlayerController : MonoBehaviour
         input = GetComponent<PlayerInput>();
         rb = GetComponent<Rigidbody2D>();
         jumpRay = new Ray2D();
+        weaponSlot = transform.GetChild(0);
     }
 
     // Update is called once per frame
@@ -39,5 +48,51 @@ public class PlayerController : MonoBehaviour
     {
         if (Physics2D.Raycast(jumpRay.origin, jumpRay.direction, jumpDetectDistance))
             rb.AddForceY(jumpHeight, ForceMode2D.Impulse);
+    }
+
+    public void Attack()
+    {
+        if (currentWeaponObj != null && canAttack)
+        {
+            isAttacking = true;
+            currentWeaponObj.transform.GetChild(0).gameObject.SetActive(true);
+            canAttack = false;
+            StartCoroutine("attackDuration");
+        }
+    }
+
+    IEnumerator attackDuration()
+    {
+        yield return new WaitForSeconds(attackTime);
+
+        isAttacking = false;
+        currentWeaponObj.transform.GetChild(0).gameObject.SetActive(false);
+        StartCoroutine("attackCooldown");
+    }
+
+    IEnumerator attackCooldown()
+    {
+        yield return new WaitForSeconds(attackCooldownTime);
+
+        canAttack = true;
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Weapon")
+        {
+            collision.gameObject.transform.SetPositionAndRotation(weaponSlot.position, 
+                                                        new Quaternion(0, 0, -90f, 90));
+
+            collision.gameObject.transform.SetParent(weaponSlot);
+
+            collision.rigidbody.bodyType = RigidbodyType2D.Kinematic;
+            collision.rigidbody.simulated = false;
+
+            collision.collider.enabled = false;
+
+            currentWeaponObj = collision.gameObject;
+            canAttack = true;
+        }
     }
 }

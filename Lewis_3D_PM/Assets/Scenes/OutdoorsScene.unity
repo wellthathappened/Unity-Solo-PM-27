@@ -906,7 +906,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eef6f6e8ce216a149b265795e8a37ac8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  speed: 5
+  speed: 10
   jumpHeight: 2.5
   jumpDetectDistance: 1.1
 --- !u!114 &313351370
