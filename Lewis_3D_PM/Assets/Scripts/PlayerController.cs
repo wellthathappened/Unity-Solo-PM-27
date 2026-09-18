@@ -1,14 +1,21 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
+    public int health = 5;
+    public int maxHealth = 5;
+
     public float speed = 5.0f;
     public float jumpHeight = 10.0f;
     public float jumpDetectDistance = 1f;
     public float interactDistance = 5f;
+    public float fusionDmgInterval = 1;
 
     public bool attacking = false;
+    public bool fusionDmg = false;
 
     Ray jumpRay;
     Ray interactRay;
@@ -21,7 +28,7 @@ public class PlayerController : MonoBehaviour
     public Transform weaponSlot;
     PlayerInput input;
     Rigidbody rb;
-    GameObject pickupObj;
+    public GameObject pickupObj;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -50,6 +57,10 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (health <= 0)
+        { 
+            
+        }
 
         jumpRay.origin = transform.position;
         jumpRay.direction = -transform.up;
@@ -59,10 +70,11 @@ public class PlayerController : MonoBehaviour
 
         if (Physics.Raycast(interactRay, out interactHit, interactDistance))
         {
-            if (interactHit.collider.tag == "Weapon")
+            if (interactHit.collider.tag == "Weapon" || interactHit.collider.tag == "Ammo")
             {
                 pickupObj = interactHit.collider.gameObject;
             }
+
             else
                 pickupObj = null;
         }
@@ -105,6 +117,23 @@ public class PlayerController : MonoBehaviour
                     pickupObj.GetComponent<Weapon>().equip(this);
                 }
 
+                // Interact to pickup ammo
+                /*
+                if (pickupObj.tag == "Ammo" && currentWeapon && currentWeapon.ammo < currentWeapon.maxAmmo)
+                {
+                    int refillAmt = currentWeapon.ammo + currentWeapon.ammoRefill;
+
+                    if (refillAmt >= currentWeapon.maxAmmo)
+                    {
+                        currentWeapon.ammo = currentWeapon.maxAmmo;
+                    }
+                    else
+                        currentWeapon.ammo += currentWeapon.ammoRefill;
+
+                    Destroy(pickupObj);
+                }
+                */
+
                 pickupObj = null;
             }
             else if (currentWeapon)
@@ -142,5 +171,80 @@ public class PlayerController : MonoBehaviour
         {
             currentWeapon.GetComponent<Weapon>().unequip();
         }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.tag == "Ammo" && currentWeapon && currentWeapon.ammo < currentWeapon.maxAmmo)
+        {
+            int refillAmt = currentWeapon.ammo + currentWeapon.ammoRefill;
+
+            if (refillAmt >= currentWeapon.maxAmmo)
+            {
+                currentWeapon.ammo = currentWeapon.maxAmmo;
+            }
+            else
+                currentWeapon.ammo += currentWeapon.ammoRefill;
+
+            Destroy(collision.gameObject);
+        }
+
+        if (collision.gameObject.tag == "Hazard")
+        {
+            health--;
+        }
+
+        if (collision.gameObject.tag == "FusionHazard")
+        {
+            health--;
+        }
+
+        if (collision.gameObject.tag == "Health" && health < maxHealth)
+        {
+            health++;
+
+            Destroy(collision.gameObject);
+        }
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.tag == "FusionHazard")
+        { 
+            if(!fusionDmg)
+            {
+                StartCoroutine("fusionDmgCooldown");
+            }
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.gameObject.tag == "LevelEnd")
+        {
+            SceneManager.LoadScene(0);
+        }
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.tag == "FusionHazard")
+        {
+            if(fusionDmg)
+            {
+                StopCoroutine("fusionDmgCooldown");
+                fusionDmg = false;
+            }
+        }
+    }
+
+    IEnumerator fusionDmgCooldown()
+    {
+        fusionDmg = true;
+
+        yield return new WaitForSeconds(fusionDmgInterval);
+
+        health--;
+        fusionDmg = false;
     }
 }

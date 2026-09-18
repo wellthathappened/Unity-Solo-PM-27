@@ -6,6 +6,11 @@ TagManager:
   tags:
   - Weapon
   - Projectile
+  - Ammo
+  - Hazard
+  - FusionHazard
+  - Health
+  - LevelEnd
   layers:
   - Default
   - TransparentFX
