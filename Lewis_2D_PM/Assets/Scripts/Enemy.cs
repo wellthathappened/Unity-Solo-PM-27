@@ -8,7 +8,8 @@ public class Enemy : MonoBehaviour
     public int maxHealth = 5;
 
     public float speed = 5;
-    public float range = 5;
+    public float detectionDistance = 5;
+    public float stoppingDistance = 1;
 
     public PlayerController player;
     public Rigidbody2D rb;
@@ -24,13 +25,9 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        float targetDistance = Vector2.Distance(player.transform.position, transform.position);
 
-        if (Mathf.Abs(player.transform.position.x - transform.position.x) <= range)
-            isFollowing = true;
-        else
-            isFollowing = false;
-
-
+        isFollowing = targetDistance <= detectionDistance;
 
         if (isFollowing)
         {
@@ -42,6 +39,9 @@ public class Enemy : MonoBehaviour
             {
                 rb.linearVelocityX = -speed;
             }
+            
+            if (targetDistance <= stoppingDistance)
+                rb.linearVelocityX = 0;
         }
         else
             rb.linearVelocityX = 0;

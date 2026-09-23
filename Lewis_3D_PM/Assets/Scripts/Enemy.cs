@@ -5,6 +5,11 @@ public class Enemy : MonoBehaviour
 {
     public bool isFollowing = false;
 
+    public int health = 3;
+    public int maxHealth = 3;
+
+    public float detectionRange = 5;
+
     public NavMeshAgent agent;
     public PlayerController player;
 
@@ -18,25 +23,13 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        float targetDistance = Vector3.Distance(player.transform.position, transform.position);
+
+        isFollowing = targetDistance <= detectionRange;
+
         if (isFollowing)
         {
             agent.destination = player.transform.position;
-        }
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if(other.tag == "Player")
-        {
-            isFollowing = true;
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.tag == "Player")
-        {
-            isFollowing = false;
         }
     }
 
