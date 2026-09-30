@@ -12,6 +12,7 @@ TagManager:
   - Health
   - LevelEnd
   - Enemy
+  - DamageParticle
   layers:
   - Default
   - TransparentFX

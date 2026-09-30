@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 
 public class PlayerController : MonoBehaviour
 {
@@ -28,8 +27,6 @@ public class PlayerController : MonoBehaviour
     public bool isAttacking = false;
     public bool canAttack = false;
 
-
-
     Ray2D jumpRay;
     Vector2 moveInput = Vector2.zero;
 
@@ -50,10 +47,11 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        onGround = Physics2D.Raycast(jumpRay.origin, jumpRay.direction, jumpDetectDistance);
 
         jumpRay.origin = transform.position;
         jumpRay.direction = -transform.up;
+
+        onGround = Physics2D.Raycast(jumpRay.origin, jumpRay.direction, jumpDetectDistance);
 
         // For top down folks
         //rb.rotation = Mathf.Atan2(Camera.main.ScreenToWorldPoint(Input.mousePosition).y - transform.position.y, Camera.main.ScreenToWorldPoint(Input.mousePosition).x - transform.position.x)  * Mathf.Rad2Deg;

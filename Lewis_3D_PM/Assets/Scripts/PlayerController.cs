@@ -5,15 +5,29 @@ using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("Player Stats")]
     public int health = 5;
     public int maxHealth = 5;
-
     public float speed = 5.0f;
+    public float sprintBoost = 2.0f;
+    public float stamina = 100f;
+    public float maxStamina = 100f;
+    public float sprintCost = 25;
+    public float staminaRegen = 20;
     public float jumpHeight = 10.0f;
+
+
+    [Header("Meta Stats")]
+    public float sprintCooldown = 1;
     public float jumpDetectDistance = 1f;
     public float interactDistance = 5f;
     public float fusionDmgInterval = 1;
-
+    public bool onGround = true;
+    public bool sprinting = false;
+    public bool canSprint = true;
+    public bool regenStamina = false;
+    public bool toggleSprint = true;
+    public bool sprintLock = false;
     public bool attacking = false;
     public bool fusionDmg = false;
 
@@ -65,6 +79,8 @@ public class PlayerController : MonoBehaviour
         jumpRay.origin = transform.position;
         jumpRay.direction = -transform.up;
 
+        onGround = Physics.Raycast(jumpRay, jumpDetectDistance);
+
         interactRay.origin = playerCam.transform.position;
         interactRay.direction = playerCam.transform.forward;
 
@@ -90,6 +106,61 @@ public class PlayerController : MonoBehaviour
         tempMove.x = moveInput.x * speed;
         tempMove.z = moveInput.y * speed;
 
+        /*
+         * If you have some power up enabled, apply the powerup
+         * 
+         * if (speedBoost)
+         * {
+         *      tempMove *= speedIncrease;
+         * }
+         */
+
+        if (sprinting)
+        {
+            if (stamina > 0)
+            {
+                tempMove.z *= sprintBoost;
+
+                stamina -= sprintCost * Time.deltaTime;
+
+                StopCoroutine("sprintReset");
+                regenStamina = false;
+
+                if(stamina <= 0)
+                {
+                    canSprint = false;
+                    sprinting = false;
+                    stamina = 0;
+                }
+            }
+            if (moveInput.y < .75f)
+            {
+                canSprint = false;
+                sprinting = false;
+                regenStamina = false;
+            }
+        }
+
+        if (!sprinting)
+        {
+            if (!canSprint && !sprintLock)
+                StartCoroutine("sprintReset");
+
+            if (canSprint && !regenStamina)
+                regenStamina = true;
+
+            if (regenStamina)
+            {
+                stamina += staminaRegen * Time.deltaTime;
+
+                if (stamina >= maxStamina)
+                {
+                    stamina = maxStamina;
+                    regenStamina = false;
+                }
+            }
+        }
+
         rb.linearVelocity = (tempMove.x * transform.right) +
                             (tempMove.y * transform.up) +
                             (tempMove.z * transform.forward);
@@ -100,9 +171,29 @@ public class PlayerController : MonoBehaviour
         moveInput = context.ReadValue<Vector2>();
     }
 
+    public void Sprint(InputAction.CallbackContext context)
+    {
+        if(canSprint && (moveInput.y >= .75f) && onGround)
+        {
+            if (!toggleSprint)
+            {
+                if (context.ReadValueAsButton())
+                    sprinting = true;
+                else
+                {
+                    sprinting = false;
+                    canSprint = false;
+                }
+            }
+            else
+                if (context.performed)
+                    sprinting = !sprinting;
+        }
+    }
+
     public void Jump()
     {
-        if (Physics.Raycast(jumpRay, jumpDetectDistance))
+        if (onGround)
             rb.AddForce(transform.up * jumpHeight, ForceMode.Impulse);
     }
 
@@ -138,6 +229,17 @@ public class PlayerController : MonoBehaviour
             }
             else if (currentWeapon)
                 Reload();
+        }
+    }
+
+    public void SwitchFireMode()
+    {
+        if(currentWeapon)
+        {
+            if(currentWeapon.weaponID == 1)
+            {
+                currentWeapon.GetComponent<Rifle>().changeFireMode();
+            }
         }
     }
 
@@ -205,6 +307,13 @@ public class PlayerController : MonoBehaviour
 
             Destroy(collision.gameObject);
         }
+
+        if (collision.gameObject.tag == "SpeedPower" /* && !speedBoost */)
+        {
+            // pick up speed boost powerup
+            // destroy pickup
+            // enable boost
+        }
     }
 
     private void OnCollisionStay(Collision collision)
@@ -246,5 +355,17 @@ public class PlayerController : MonoBehaviour
 
         health--;
         fusionDmg = false;
+    }
+
+    IEnumerator sprintReset()
+    {
+        sprintLock = true;
+        regenStamina = false;
+
+        yield return new WaitForSeconds(sprintCooldown);
+
+        canSprint = true;
+        regenStamina = true;
+        sprintLock = false;
     }
 }
