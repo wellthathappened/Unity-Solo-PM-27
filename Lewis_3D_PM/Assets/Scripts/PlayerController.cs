@@ -55,9 +55,6 @@ public class PlayerController : MonoBehaviour
 
         interactRay = new Ray();
         weaponSlot = playerCam.transform.GetChild(0);
-
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
     }
 
     private void FixedUpdate()
@@ -329,9 +326,9 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.tag == "LevelEnd")
+        if(other.gameObject.tag == "LevelEnd" && GameObject.Find("GameManager").GetComponent<GameManager>().enemiesGone)
         {
-            SceneManager.LoadScene(0);
+            GameObject.Find("GameManager").GetComponent<GameManager>().LoadNextNevel();
         }
     }
 

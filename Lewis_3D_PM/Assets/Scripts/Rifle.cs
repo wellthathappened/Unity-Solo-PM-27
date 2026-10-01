@@ -8,7 +8,7 @@ public class Rifle : Weapon
 
     public void changeFireMode()
     {
-        if (fireModes >= 2)
+        if (fireModes >= 2 && canFire)
         {
             currentFireMode++;
 

@@ -34,7 +34,11 @@ public class Enemy : MonoBehaviour
     void Update()
     {
         if (health <= 0)
+        {
+            GameObject.Find("GameManager").GetComponent<GameManager>().enemyCount--;
+
             Destroy(gameObject);
+        }
 
         float targetDistance = Vector3.Distance(player.transform.position, transform.position);
 
