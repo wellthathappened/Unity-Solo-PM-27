@@ -4,6 +4,7 @@ using UnityEngine;
 public class Weapon : MonoBehaviour
 {
     PlayerController player;
+    AudioSource speaker;
 
     [Header("Object Refrences")]
     public GameObject projectile;
@@ -37,6 +38,7 @@ public class Weapon : MonoBehaviour
     {
         firePoint = transform.GetChild(0);
         firingDirection = Camera.main;
+        speaker = GetComponent<AudioSource>();
     }
 
     public void equip(PlayerController p)
@@ -92,6 +94,8 @@ public class Weapon : MonoBehaviour
     {
         if (clip > 0 && canFire && !reloading)
         {
+            speaker.Play();
+
             clip--;
 
             GameObject p = Instantiate(projectile, firePoint.position, firePoint.rotation);

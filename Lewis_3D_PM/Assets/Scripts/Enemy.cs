@@ -4,6 +4,8 @@ using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
+    Animator myAnim;
+
     public bool isFollowing = false;
     public bool isAttacking = false;
     public bool canAttack = true;
@@ -28,6 +30,7 @@ public class Enemy : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         player = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
+        myAnim = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -44,7 +47,18 @@ public class Enemy : MonoBehaviour
 
         isFollowing = targetDistance <= detectionRange;
 
-        if (isFollowing && health > 0)
+        
+
+        if (agent.velocity != Vector3.zero)
+        {
+            myAnim.SetBool("isWalking", true);
+        }
+        else
+        {
+            myAnim.SetBool("isWalking", false);
+        }
+
+            if (isFollowing && health > 0)
         {
             agent.destination = player.transform.position;
         }
